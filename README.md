@@ -115,9 +115,8 @@ Configure the backend and databases:
 
 ```bash
 cd server
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+pipenv install
+pipenv shell
 
 cp .env.example .env
 python init_db.py
@@ -161,7 +160,7 @@ cd client
 npm run build:flask
 
 cd ../server
-source .venv/bin/activate
+pipenv shell
 flask --app wsgi run
 ```
 
