@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+
+# Flask runtime data
+server/instance/*
+!server/instance/.gitkeep
+server/app/static/assets/*
+!server/app/static/assets/.gitkeep
+server/app/templates/index.html
+
+# Node / Vite
+client/node_modules/
+client/dist/
+client/.vite/
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

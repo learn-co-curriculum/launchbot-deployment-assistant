@@ -1,0 +1,146 @@
+[
+  {
+    "chunk_id": "chunk-localhost-001",
+    "source_id": "DEP-101",
+    "title": "Localhost vs Public Hosting",
+    "category": "Deployment Concepts",
+    "section": "Why localhost is not shareable",
+    "text": "A URL that starts with localhost or 127.0.0.1 points to the computer making the request. When a developer shares http://localhost:5000 with a friend, the friend's browser looks for a server on the friend's own computer, not on the developer's machine. To let other users access the application, the app must run on a publicly reachable server or hosting platform."
+  },
+  {
+    "chunk_id": "chunk-ec2-001",
+    "source_id": "DEP-120",
+    "title": "Single-Instance Teaching Architecture",
+    "category": "AWS",
+    "section": "Recommended demo architecture",
+    "text": "For this teaching deployment, one EC2 instance can run Nginx, Gunicorn, Flask, Chroma files, SQLite, and Ollama. This keeps the architecture easier to inspect because the browser request flows through one server before the backend retrieves context and calls the local model service. Production systems often separate these layers, but the single-instance design is useful for learning the full deployment path."
+  },
+  {
+    "chunk_id": "chunk-security-groups-001",
+    "source_id": "DEP-121",
+    "title": "Security Group Basics",
+    "category": "AWS",
+    "section": "Inbound traffic",
+    "text": "A deployment server needs inbound rules that match how users and developers connect. SSH should be limited to the developer's trusted IP address when possible. HTTP can be opened so browsers can reach the deployed app. Ollama and Chroma should not be opened directly to the public internet in this teaching deployment."
+  },
+  {
+    "chunk_id": "chunk-env-001",
+    "source_id": "DEP-130",
+    "title": "Development and Production Configuration",
+    "category": "Configuration",
+    "section": "Environment variables",
+    "text": "Development and production environments should use configuration values instead of hard-coded paths. LaunchBot reads DATABASE_PATH, CHROMA_PATH, OLLAMA_BASE_URL, GENERATION_MODEL, EMBEDDING_MODEL, TOP_K, and TEMPERATURE from the server .env file. In production, these values should point to server paths such as the instance directory and to Ollama on 127.0.0.1."
+  },
+  {
+    "chunk_id": "chunk-react-build-001",
+    "source_id": "DEP-140",
+    "title": "React Production Build",
+    "category": "Frontend",
+    "section": "Vite build output",
+    "text": "During development, the React app can run on the Vite dev server while Flask runs separately. For the teaching deployment, the React app is built into static files and copied into Flask. The index.html file goes into the Flask templates folder, and the built assets go into the Flask static assets folder."
+  },
+  {
+    "chunk_id": "chunk-api-routing-001",
+    "source_id": "DEP-141",
+    "title": "Route Separation for Full-Stack Apps",
+    "category": "Frontend",
+    "section": "Root route and API namespace",
+    "text": "A full-stack app should avoid route conflicts between the frontend and backend. LaunchBot serves the React app from the root route and keeps backend routes under the /api namespace. This lets React own user-facing page paths while Flask keeps API endpoints predictable."
+  },
+  {
+    "chunk_id": "chunk-flask-gunicorn-001",
+    "source_id": "DEP-150",
+    "title": "Running Flask in Production",
+    "category": "Backend",
+    "section": "Gunicorn",
+    "text": "The Flask development server is useful while building locally, but a deployed Flask app should run behind a production WSGI server. LaunchBot uses Gunicorn to run the Flask application on 127.0.0.1:8000. Nginx receives public HTTP requests and proxies them to Gunicorn."
+  },
+  {
+    "chunk_id": "chunk-systemd-001",
+    "source_id": "DEP-151",
+    "title": "Keeping the App Running",
+    "category": "Backend",
+    "section": "systemd service",
+    "text": "A systemd service lets the server start the Flask application process and restart it after failures or reboots. LaunchBot includes a sample launchbot.service file that runs Gunicorn from the project's virtual environment and loads environment variables from the server .env file."
+  },
+  {
+    "chunk_id": "chunk-nginx-001",
+    "source_id": "DEP-152",
+    "title": "Nginx Reverse Proxy",
+    "category": "Backend",
+    "section": "Public web entry",
+    "text": "Nginx can act as the public entry point for the app. In the teaching deployment, Nginx listens on port 80 and proxies requests to Gunicorn on 127.0.0.1:8000. This keeps Gunicorn private to the server while giving users a normal HTTP URL."
+  },
+  {
+    "chunk_id": "chunk-ollama-001",
+    "source_id": "DEP-160",
+    "title": "Ollama on the Deployment Server",
+    "category": "AI Service",
+    "section": "Local model service",
+    "text": "Ollama runs as a local model service on the deployment server. LaunchBot connects to Ollama through OLLAMA_BASE_URL, which should be http://127.0.0.1:11434 on the EC2 instance. The server should pull both the generation model and the embedding model before seeding Chroma or answering questions."
+  },
+  {
+    "chunk_id": "chunk-chroma-001",
+    "source_id": "DEP-170",
+    "title": "Chroma Persistence",
+    "category": "Vector Database",
+    "section": "Persistent path",
+    "text": "Chroma needs a persistent path so the vector collection is still available after the app restarts. LaunchBot stores Chroma files in the path configured by CHROMA_PATH. The seed_chroma.py script loads approved deployment runbook chunks, embeds them with the configured Ollama embedding model, and stores them in the Chroma collection."
+  },
+  {
+    "chunk_id": "chunk-sqlite-001",
+    "source_id": "DEP-171",
+    "title": "SQLite Thread Persistence",
+    "category": "Database",
+    "section": "Threaded chat storage",
+    "text": "SQLite stores LaunchBot chat threads and messages in a local database file. This is simple for a teaching deployment because it does not require a separate managed database. Production applications usually move persistent user data to a database service such as PostgreSQL or a managed relational database."
+  },
+  {
+    "chunk_id": "chunk-verification-001",
+    "source_id": "DEP-180",
+    "title": "Deployment Verification",
+    "category": "Verification",
+    "section": "Success checks",
+    "text": "A successful LaunchBot deployment should pass several checks. The public URL should load the React interface, /api/health should return ok, /api/rag/health should show Ollama and Chroma status, a new chat thread should be created, and a question about deployment should return an answer with source cards."
+  },
+  {
+    "chunk_id": "chunk-cleanup-001",
+    "source_id": "DEP-190",
+    "title": "Cost Cleanup",
+    "category": "Cloud Cost",
+    "section": "Stop unused resources",
+    "text": "Cloud resources can continue to create costs while they are running or while storage remains allocated. Students should stop or terminate demo instances when they are finished, delete unused storage if appropriate, and check the cloud billing dashboard or budget tools for unexpected usage."
+  },
+  {
+    "chunk_id": "chunk-production-alternatives-001",
+    "source_id": "DEP-200",
+    "title": "Production Alternatives",
+    "category": "Production Readiness",
+    "section": "Beyond the teaching deployment",
+    "text": "The single-instance LaunchBot deployment is intentionally simplified. A production app may separate the frontend, backend, relational database, vector database, and model service. It may also require HTTPS, authentication, monitoring, budget alerts, rate limits, private networking, backups, and stronger model hosting."
+  },
+  {
+    "chunk_id": "chunk-free-tier-001",
+    "source_id": "DEP-115",
+    "title": "Free-Tier-First Instance Choice",
+    "category": "AWS",
+    "section": "t3.micro versus t3.medium",
+    "text": "A t3.micro instance can be useful for proving that the deployment path works, but it has very limited memory for a full-stack app that also runs Ollama, Chroma, SQLite, Gunicorn, and Nginx. The app may load while chatbot responses time out or return a gateway error. If that happens, students can stop the EC2 instance, change the instance type to t3.medium, start it again, and verify the same deployment with more memory."
+  },
+  {
+    "chunk_id": "chunk-models-001",
+    "source_id": "DEP-161",
+    "title": "LaunchBot Model Choices",
+    "category": "AI Service",
+    "section": "Generation and embedding models",
+    "text": "LaunchBot uses llama3.2 as the generation model to stay aligned with earlier curriculum work. It uses nomic-embed-text as the embedding model because it is an embedding-only Ollama model that works with LangChain and Chroma in this deployment. Students must pull both models on the EC2 instance before seeding Chroma or running the chatbot."
+  },
+  {
+    "chunk_id": "chunk-dns-001",
+    "source_id": "DEP-201",
+    "title": "Friendly Domain Names",
+    "category": "Production Readiness",
+    "section": "Replacing the AWS public DNS",
+    "text": "The long EC2 public DNS name is acceptable for a lesson demo. A production or capstone project can use a custom domain by creating DNS records that route a friendly domain or subdomain to the EC2 instance. Because the public IP can change after stop and start, a stable domain setup usually needs a stable address such as an Elastic IP, which may create additional cost."
+  }
+]
