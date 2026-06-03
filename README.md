@@ -208,6 +208,8 @@ This helps you understand what each tool is responsible for before you start ins
 
 **Open the EC2 launch wizard.**
 
+If you don't already have one, create an AWS account. Then navigate to EC2 to launch an instance.
+
 ```text
 AWS Console
 → EC2
